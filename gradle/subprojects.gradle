@@ -1,0 +1,56 @@
+subprojects {
+
+    apply plugin: 'groovy'
+    apply plugin: 'net.ltgt.errorprone'
+    apply from: "$rootDir/gradle/artifacts.gradle"
+    apply from: "$rootDir/gradle/jacoco.gradle"
+    apply from: "$rootDir/gradle/pmd.gradle"
+    apply from: "$rootDir/gradle/checkstyle.gradle"
+    apply from: "$rootDir/gradle/findbugs.gradle"
+    apply from: "$rootDir/gradle/publishing.gradle"
+
+    repositories {
+        mavenLocal()
+        jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }        
+        maven { 
+            url artifactoryURL
+            credentials {
+                username = artifactoryUser
+                password = artifactoryPassword
+            }
+        }
+    }
+
+    dependencies {
+        errorprone 'com.google.errorprone:error_prone_core:2.0.21'
+        compile localGroovy(), gradleApi()
+
+        testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+            exclude group: 'org.codehaus.groovy'
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.compilerArgs += ["-Xlint:-options"]
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
+    }
+    
+    tasks.withType (Test) {
+        maxParallelForks = 2
+        testLogging {
+            showStandardStreams = true
+            events 'started', 'passed', 'failed'
+        }
+        jacoco {
+            append = false
+            destinationFile = file("$buildDir/jacoco/${name}.exec")
+            classDumpDir = file("$buildDir/jacoco/${name}_ClassDump")
+        }
+    }
+    
+    build.finalizedBy jacocoTestReport, jacocoTestCoverageVerification
+}
