@@ -2,7 +2,7 @@
 
 Gradle plugin to produce proguard jars.
 
-## Project Status
+## Status
 
 | Name | CI | Codecov | Docs | Release |
 | :--- | :---: | :---: | :---: | :---: |
