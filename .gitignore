@@ -9,6 +9,7 @@ test-output/
 .eclipse-pmd
 .pmd
 .ruleset
+*.swp
 
 # OS generated files #
 ######################
