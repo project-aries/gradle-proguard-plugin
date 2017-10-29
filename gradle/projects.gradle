@@ -1,4 +1,4 @@
-subprojects {
+allprojects {
 
     apply plugin: 'groovy'
     apply plugin: 'net.ltgt.errorprone'
@@ -28,6 +28,8 @@ subprojects {
         errorprone 'com.google.errorprone:error_prone_core:2.0.21'
         compile localGroovy(), gradleApi()
 
+        testCompile "junit:junit:4.12"
+        testCompile ('org.assertj:assertj-core:3.8.0')
         testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
             exclude group: 'org.codehaus.groovy'
         }

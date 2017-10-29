@@ -42,8 +42,6 @@ publishing {
             from components.java             
             artifact sourcesJar
             artifact docsJar
-            artifact testsJar
-            artifact shadowJar
         }
     }
 }
