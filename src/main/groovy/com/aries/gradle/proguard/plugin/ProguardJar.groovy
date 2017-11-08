@@ -8,15 +8,16 @@ package com.aries.gradle.proguard.plugin
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+import proguard.gradle.ProGuardTask
 
 /**
  *
  * @author cdancy
  */
-class ProguardJar extends DefaultTask {
+class ProguardJar extends proguard.gradle.ProGuardTask {
 	
     @TaskAction
-    def execute() {
+    def start(){
         println 'hello from GreetingTask'
     }
 }

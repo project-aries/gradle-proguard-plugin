@@ -26,7 +26,7 @@ class GradleProguardPlugin implements Plugin<Project> {
     void apply(Project project) {
 
         // 1.) create proguard extension
-        final GradleProguardPluginExtension extension = project.extensions.create(EXTENSION_NAME, GradleProguardPluginExtension)
+        final GradleProguardPluginExtension extension = createProguardExtension(project)
         
         // 2.) create proguard configuration
         final Configuration configuration = createProguardConfiguration(project, extension);
@@ -35,9 +35,18 @@ class GradleProguardPlugin implements Plugin<Project> {
         final ProguardJar proguardJar = createProguardTask(project);
     }
 
+    // Create proguard extension if it does not already exist
+    public static GradleProguardPluginExtension createProguardExtension(final Project project) {
+        GradleProguardPluginExtension extension = project.rootProject.extensions.findByName(EXTENSION_NAME)
+        if (!extension) {
+            extension = project.extensions.create(EXTENSION_NAME, GradleProguardPluginExtension)
+        }
+        extension
+    }
+
     // Create proguard configuration if it does NOT already exist
     public static Configuration createProguardConfiguration(final Project project, final GradleProguardPluginExtension extension) {
-        Configuration configuration = project.configurations.getByName(CONFIGURATION_NAME)
+        Configuration configuration = project.rootProject.configurations.findByName(CONFIGURATION_NAME)
         if (!configuration) {
             configuration = project.configurations.create(CONFIGURATION_NAME)
                     .setVisible(false)
@@ -58,10 +67,11 @@ class GradleProguardPlugin implements Plugin<Project> {
         }
         configuration
     }
-    
+
+    // Create proguard task if it does not already exist
     public static ProguardJar createProguardTask(final Project project) {
-        ProguardJar proguardJar = project.tasks.getByName(TASK_NAME)
-        if (proguardJar == null) {
+        ProguardJar proguardJar = project.rootProject.tasks.findByName(TASK_NAME)
+        if (!proguardJar) {
             proguardJar = project.tasks.create(TASK_NAME, ProguardJar)
             proguardJar.group = TASK_GROUP
             proguardJar.description = 'Create a Proguard jar'
