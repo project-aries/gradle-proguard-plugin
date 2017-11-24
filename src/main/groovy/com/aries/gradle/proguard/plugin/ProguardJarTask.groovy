@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.copy.DestinationRootCopySpec
 import org.gradle.api.internal.file.copy.FileCopyAction
 import org.gradle.api.tasks.AbstractCopyTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -44,10 +45,6 @@ import proguard.gradle.ProGuardTask
  */
 class ProguardJarTask extends ProGuardTask {
 
-    private static final def JAVA_LIBS = ["${System.getProperty('java.home')}/lib/rt.jar",
-                                          "${System.getProperty('java.home')}/lib/jsse.jar",
-                                          "${System.getProperty('java.home')}/lib/jce.jar"].asImmutable()
-
     @Input
     @Optional
     public String classifier
@@ -55,6 +52,9 @@ class ProguardJarTask extends ProGuardTask {
     @Input
     @Optional
     public File destinationDir
+    
+    @Internal
+    private boolean useJreLibsAsLibraryJars = false
 
     @Override
     @TaskAction
@@ -72,8 +72,10 @@ class ProguardJarTask extends ProGuardTask {
         }
 
         // 2.) Add OOTB java libs as library jars.
-        JAVA_LIBS.each {
-            this.libraryjars(it)    
+        if (useJreLibsAsLibraryJars) {
+            ProguardConstants.JAVA_LIBS.each {
+                this.libraryjars(it)    
+            }
         }
         
         for (def possibleInJar : getInJarFiles()) {
@@ -86,6 +88,40 @@ class ProguardJarTask extends ProGuardTask {
 
         this.outjars("${destinationDir.path}/helloWorld.jar")
         super.proguard()
+    }
+    
+    void useJreLibsAsLibraryJars() {
+        useJreLibsAsLibraryJars = true
+    }
+    
+    void configureForLibraryGeneration() {
+        overloadaggressively
+        repackageclasses ''
+        keepparameternames
+        renamesourcefileattribute 'SourceFile'
+        keepattributes 'Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,EnclosingMethod,*Annotation*'
+        keep 'public class * { \
+            public protected *; \
+        }'
+        keepclassmembernames 'class * { \
+            java.lang.Class class\$(java.lang.String); \
+            java.lang.Class class\$(java.lang.String, boolean); \
+        }'
+        keepclasseswithmembernames includedescriptorclasses:true, 'class * { \
+            native <methods>; \
+        }'
+        keepclassmembers allowshrinking:true, 'enum * { \
+            public static **[] values(); \
+            public static ** valueOf(java.lang.String); \
+        }'
+        keepclassmembers 'class * implements java.io.Serializable { \
+            static final long serialVersionUID; \
+            static final java.io.ObjectStreamField[] serialPersistentFields; \
+            private void writeObject(java.io.ObjectOutputStream); \
+            private void readObject(java.io.ObjectInputStream); \
+            java.lang.Object writeReplace(); \
+            java.lang.Object readResolve(); \
+        }'
     }
 }
 

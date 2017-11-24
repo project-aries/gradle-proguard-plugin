@@ -26,7 +26,7 @@ import spock.lang.Requires
 */
 class ProguardJarTaskTests extends AbstractFunctionalTest {
 
-    def "Hello World"() {
+    def "Build Proguard Jar"() {
 
         buildFile << """
             configurations {
@@ -40,35 +40,10 @@ class ProguardJarTaskTests extends AbstractFunctionalTest {
             }
 
             proguardJar {
+                useJreLibsAsLibraryJars()
+                configureForLibraryGeneration()
+
                 dontwarn
-                target '7'
-                overloadaggressively
-                repackageclasses ''
-                keepparameternames
-                renamesourcefileattribute 'SourceFile'
-                keepattributes 'Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,EnclosingMethod,*Annotation*'
-                keep 'public class * { \
-                    public protected *; \
-                }'
-                keepclassmembernames 'class * { \
-                    java.lang.Class class\$(java.lang.String); \
-                    java.lang.Class class\$(java.lang.String, boolean); \
-                }'
-                keepclasseswithmembernames includedescriptorclasses:true, 'class * { \
-                    native <methods>; \
-                }'
-                keepclassmembers allowshrinking:true, 'enum * { \
-                    public static **[] values(); \
-                    public static ** valueOf(java.lang.String); \
-                }'
-                keepclassmembers 'class * implements java.io.Serializable { \
-                    static final long serialVersionUID; \
-                    static final java.io.ObjectStreamField[] serialPersistentFields; \
-                    private void writeObject(java.io.ObjectOutputStream); \
-                    private void readObject(java.io.ObjectInputStream); \
-                    java.lang.Object writeReplace(); \
-                    java.lang.Object readResolve(); \
-                }'
 
                 inputs.files configurations.findByName('customConfig').files.first()
             }
@@ -89,7 +64,7 @@ class ProguardJarTaskTests extends AbstractFunctionalTest {
         BuildResult result = build('workflow')
 
         then:
-        result.output.contains('Hello World')
+        result.output.contains('BUILD SUCCESSFUL')
     }
 }
 
