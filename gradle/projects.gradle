@@ -1,6 +1,7 @@
 allprojects {
 
     apply plugin: 'groovy'
+    apply plugin: 'java-gradle-plugin'
     apply plugin: 'net.ltgt.errorprone'
     apply from: "$rootDir/gradle/artifacts.gradle"
     apply from: "$rootDir/gradle/jacoco.gradle"
@@ -37,6 +38,19 @@ allprojects {
         }
     }
 
+    sourceSets {
+        functionalTest {
+            groovy.srcDir file('src/functionalTest/groovy')
+            resources.srcDir file('src/functionalTest/resources')
+            compileClasspath += sourceSets.main.output + configurations.testRuntime
+            runtimeClasspath += output + compileClasspath
+        }
+    }
+
+    gradlePlugin {
+        testSourceSets sourceSets.functionalTest
+    }
+
     tasks.withType(JavaCompile) {
         options.compilerArgs += ["-Xlint:-options"]
         sourceCompatibility = '1.8'
@@ -55,6 +69,19 @@ allprojects {
             classDumpDir = file("$buildDir/jacoco/${name}_ClassDump")
         }
     }
-    
-    build.finalizedBy jacocoTestReport, jacocoTestCoverageVerification
+
+    task functionalTest(type: Test) {
+        description = 'Runs the functional tests.'
+        group = 'verification'
+        testClassesDirs = sourceSets.functionalTest.output.classesDirs
+        classpath = sourceSets.functionalTest.runtimeClasspath
+        mustRunAfter test
+
+        reports {
+            html.destination = project.file("$html.destination/functional")
+            junitXml.destination = project.file("$junitXml.destination/functional")
+        }
+    }
+
+    build.finalizedBy functionalTest, jacocoTestReport, jacocoTestCoverageVerification
 }

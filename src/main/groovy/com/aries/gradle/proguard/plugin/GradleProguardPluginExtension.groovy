@@ -7,7 +7,7 @@
 package com.aries.gradle.proguard.plugin
 
 /**
- * Extension point for GradleProguardPlugin
+ * Extension point for GradleProguardPlugin.
  *
  * @author cdancy
  */

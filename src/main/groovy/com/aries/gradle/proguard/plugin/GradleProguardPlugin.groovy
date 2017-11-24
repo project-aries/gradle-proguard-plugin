@@ -11,7 +11,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
 /**
- * Entry point for the GradleProguardPlugin
+ * Entry point for the GradleProguardPlugin.
  *
  * @author cdancy
  */
@@ -32,7 +32,7 @@ class GradleProguardPlugin implements Plugin<Project> {
         final Configuration configuration = createProguardConfiguration(project, extension);
         
         // 3.) create proguard task
-        final ProguardJar proguardJar = createProguardTask(project);
+        final ProguardJarTask proguardJar = createProguardJarTask(project);
     }
 
     // Create proguard extension if it does not already exist
@@ -69,19 +69,14 @@ class GradleProguardPlugin implements Plugin<Project> {
     }
 
     // Create proguard task if it does not already exist
-    public static ProguardJar createProguardTask(final Project project) {
-        ProguardJar proguardJar = project.rootProject.tasks.findByName(TASK_NAME)
+    public static ProguardJarTask createProguardJarTask(final Project project) {
+        ProguardJarTask proguardJar = project.rootProject.tasks.findByName(TASK_NAME)
         if (!proguardJar) {
-            proguardJar = project.tasks.create(TASK_NAME, ProguardJar)
+            proguardJar = project.tasks.create(TASK_NAME, ProguardJarTask)
             proguardJar.group = TASK_GROUP
             proguardJar.description = 'Create a Proguard jar'
-            proguardJar.conventionMapping.with {
-                map('classifier') {
-                    'pro'
-                }
-            }
-
-            proguardJar.manifest.inheritFrom project.tasks.jar.manifest
+            proguardJar.classifier = 'pro'
+            proguardJar.destinationDir = project.file("${project.buildDir}/libs")
         }
         proguardJar
     }
