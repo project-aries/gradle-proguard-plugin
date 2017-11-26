@@ -17,13 +17,17 @@
 
 package com.aries.gradle.proguard.plugin;
 
+/*
+
+    Constants to use globally across plugin code base.
+
+*/
 public class ProguardConstants {
 
     public static final def JAVA_LIBS = ["${System.getProperty('java.home')}/lib/rt.jar",
                                          "${System.getProperty('java.home')}/lib/jsse.jar",
                                          "${System.getProperty('java.home')}/lib/jce.jar"].asImmutable()
-    
-    
+
     private ProguardConstants() {
         throw new UnsupportedOperationException('Cannot instantiate instance of this class');
     }

@@ -26,7 +26,7 @@ import spock.lang.Requires
 */
 class ProguardJarTaskTests extends AbstractFunctionalTest {
 
-    def "Build Proguard Jar"() {
+    def "Build Proguard Jar using OOTB task inputs"() {
 
         buildFile << """
             configurations {
@@ -40,23 +40,15 @@ class ProguardJarTaskTests extends AbstractFunctionalTest {
             }
 
             proguardJar {
-                useJreLibsAsLibraryJars()
-                configureForLibraryGeneration()
-
-                dontwarn
+                withJavaLibs()
+                withLibraryConfiguration()
+                dontwarn()
 
                 inputs.files configurations.findByName('customConfig').files.first()
             }
 
             task workflow {
                 dependsOn proguardJar
-                doLast {
-                    def output = ["ls", "-alh", "${projectDir}/build/libs"].execute().text
-                    println "Output: \${output}"
-
-                    output = ["unzip", "-vl", "${projectDir}/build/libs/helloWorld.jar"].execute().text
-                    println "Output: \${output}"
-                }
             }
         """
 
@@ -65,6 +57,130 @@ class ProguardJarTaskTests extends AbstractFunctionalTest {
 
         then:
         result.output.contains('BUILD SUCCESSFUL')
+        !result.output.contains('No jars to process')
+    }
+
+    def "Build Proguard Jar using inputFile parameter"() {
+
+        buildFile << """
+            configurations {
+                customConfig
+            }
+
+            dependencies {
+                customConfig (group: 'org.apache.ant', name: 'ant', version: '1.10.1') {
+                    transitive = false
+                }
+            }
+
+            proguardJar {
+                withJavaLibs()
+                withLibraryConfiguration()
+                dontwarn()
+
+                inputFile = configurations.findByName('customConfig').files.first()
+            }
+
+            task workflow {
+                dependsOn proguardJar
+            }
+        """
+
+        when:
+        BuildResult result = build('workflow')
+
+        then:
+        result.output.contains('BUILD SUCCESSFUL')
+        !result.output.contains('No jars to process')
+    }
+
+    def "Build Proguard Jar using inputFile method"() {
+
+        buildFile << """
+            configurations {
+                customConfig
+            }
+
+            dependencies {
+                customConfig (group: 'org.apache.ant', name: 'ant', version: '1.10.1') {
+                    transitive = false
+                }
+            }
+
+            proguardJar {
+                withJavaLibs()
+                withLibraryConfiguration()
+                dontwarn()
+
+                inputFile configurations.findByName('customConfig').files.first()
+            }
+
+            task workflow {
+                dependsOn proguardJar
+            }
+        """
+
+        when:
+        BuildResult result = build('workflow')
+
+        then:
+        result.output.contains('BUILD SUCCESSFUL')
+        !result.output.contains('No jars to process')
+    }
+
+    def "Build Proguard Jar using injars method"() {
+
+        buildFile << """
+            configurations {
+                customConfig
+            }
+
+            dependencies {
+                customConfig (group: 'org.apache.ant', name: 'ant', version: '1.10.1') {
+                    transitive = false
+                }
+            }
+
+            proguardJar {
+                withJavaLibs()
+                withLibraryConfiguration()
+                dontwarn()
+
+                injars configurations.findByName('customConfig').files.first().path
+            }
+
+            task workflow {
+                dependsOn proguardJar
+            }
+        """
+
+        when:
+        BuildResult result = build('workflow')
+
+        then:
+        result.output.contains('BUILD SUCCESSFUL')
+        !result.output.contains('No jars to process')
+    }
+
+    def "When no inputs are found print 'No jars to process' message"() {
+
+        buildFile << """
+            proguardJar {
+                withJavaLibs()
+                withLibraryConfiguration()
+                dontwarn()
+            }
+
+            task workflow {
+                dependsOn proguardJar
+            }
+        """
+
+        when:
+        BuildResult result = build('workflow')
+
+        then:
+        result.output.contains('No jars to process')
     }
 }
 

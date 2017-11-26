@@ -75,8 +75,6 @@ class GradleProguardPlugin implements Plugin<Project> {
             proguardJar = project.tasks.create(TASK_NAME, ProguardJarTask)
             proguardJar.group = TASK_GROUP
             proguardJar.description = 'Create a Proguard jar'
-            proguardJar.classifier = 'pro'
-            proguardJar.destinationDir = project.file("${project.buildDir}/libs")
         }
         proguardJar
     }

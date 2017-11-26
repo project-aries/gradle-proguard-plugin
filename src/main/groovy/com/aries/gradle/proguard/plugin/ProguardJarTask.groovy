@@ -21,6 +21,7 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
@@ -30,16 +31,19 @@ import org.gradle.api.internal.file.copy.DestinationRootCopySpec
 import org.gradle.api.internal.file.copy.FileCopyAction
 import org.gradle.api.tasks.AbstractCopyTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.reflect.Instantiator
 import proguard.gradle.ProGuardTask
 
 /**
- * Custom Proguard task to make things more gradle-like. 
+ * Custom Proguard (sub-classing to be exact) task to make things 
+ * more gradle-like.
  *
  * @author cdancy
  */
@@ -47,54 +51,59 @@ class ProguardJarTask extends ProGuardTask {
 
     @Input
     @Optional
-    public String classifier
-    
-    @Input
+    public String classifier = 'pro'
+
+    // file to convert to proguard
+    @InputFile
     @Optional
+    public File inputFile
+
+    // lazily resolves to build/libs
+    @InputFile
     public File destinationDir
-    
+
+    // whether to use java libraries for proguard generation
     @Internal
-    private boolean useJreLibsAsLibraryJars = false
+    private boolean withJavaLibs = false
 
     @Override
     @TaskAction
     void proguard(){
-        logger.quiet 'Creating Proguard jar...'
 
-        // 1.) Add any inputs the user has passed in.
-        if (this.getInputs().getHasInputs()) { 
-            for (def possibleFile : this.getInputs().files.files) {
-                def possibleFilePath = possibleFile.path
-                if (!getInJarFiles().contains(possibleFilePath)) {
-                    this.injars(possibleFilePath)
+        // 1.) Only proceed if we have something to process otherwise output `NO-SOURCE` message
+        def proguardInputFileFound = setProguardInputFile()
+        if (proguardInputFileFound) {
+            
+            // 2.) Add OOTB java libs as library jars if requested.
+            if (withJavaLibs) {
+                ProguardConstants.JAVA_LIBS.each {
+                    this.libraryjars(it)    
                 }
             }
-        }
 
-        // 2.) Add OOTB java libs as library jars.
-        if (useJreLibsAsLibraryJars) {
-            ProguardConstants.JAVA_LIBS.each {
-                this.libraryjars(it)    
+            // 3.) Set outputFile if it doesn't already exist. Very low
+            //     likelyhood of getting a duplicate here but do a check
+            //     just to be on the safe side.
+            def outputFilePath = getOutputFile().path
+            if (!this.getOutJarFiles().contains(outputFilePath)) {
+                this.outjars(outputFilePath)
             }
-        }
-        
-        for (def possibleInJar : getInJarFiles()) {
-            logger.quiet "In Jar File: ${possibleInJar}"
-        }
-        
-        for (def possibleFile : getLibraryJarFileCollection().files) {
-            logger.quiet "Found lib jar ${possibleFile}"
-        }
 
-        this.outjars("${destinationDir.path}/helloWorld.jar")
-        super.proguard()
+            // 4.) Execute super version of proguard method to create our jar.
+            super.proguard()
+
+        } else {
+            logger.quiet 'No jars to process. Was this expected?'
+        }
     }
-    
-    void useJreLibsAsLibraryJars() {
-        useJreLibsAsLibraryJars = true
+
+    // use java libraries as inputs for proguard library jars
+    void withJavaLibs() {
+        withJavaLibs = true
     }
-    
-    void configureForLibraryGeneration() {
+
+    // helper method to configure proguard for library generation
+    void withLibraryConfiguration() {
         overloadaggressively
         repackageclasses ''
         keepparameternames
@@ -122,6 +131,68 @@ class ProguardJarTask extends ProGuardTask {
             java.lang.Object writeReplace(); \
             java.lang.Object readResolve(); \
         }'
+    }
+
+    // find a file to use as input for proguard and set it
+    private boolean setProguardInputFile() {
+
+        boolean inputFileFound = false
+
+        // 1.) If no 'injars' were specified then proceed to find one
+        if (this.getInJarFiles().isEmpty()) {
+            
+            // 2.) Check if user passed in main inputFile
+            if (inputFile) {
+                this.injars(inputFile.path)
+                inputFileFound = true
+            } else {
+
+                // 3.) Check if user passed in jar through task inputs.
+                if(this.getInputs().getHasInputs() && !this.getInputs().getFiles().isEmpty()) {
+                    this.injars(this.getInputs().getFiles().getSingleFile().path)
+                    inputFileFound = true
+                } else {
+
+                    // 4.) If nothing was passed in assume user wanted us to use
+                    //     output of jar task.
+                    def jarOutputFile = project.tasks.findByName('jar')?.outputs?.files?.singleFile
+                    if (jarOutputFile) {
+                        this.injars(jarOutputFile.path)
+                        inputFileFound = true
+                    }
+                }
+            }
+        } else {
+            inputFileFound = true
+        }
+        
+        inputFileFound
+    }
+
+    @OutputFile
+    public File getOutputFile() {
+
+        def localDestinationDir = destinationDir ?: project.file("${project.buildDir}/libs")
+        def generatedFileName = "${localDestinationDir.path}/${project.name}"
+
+        def localVersion = project.findProperty('version')
+        if (localVersion && localVersion != 'unspecified') {
+            generatedFileName += "-${localVersion}"
+        }
+
+        if (classifier) {
+            generatedFileName += "-${classifier}"
+        }
+
+        return project.file("${generatedFileName}.jar")
+    }
+
+    void inputFile(final File inputFile) {
+        if (inputFile) {
+            this.inputFile = inputFile
+        } else {
+            throw new GradleException('Cannot set NULL inputFile')
+        }
     }
 }
 
