@@ -162,6 +162,47 @@ class ProguardJarTaskTests extends AbstractFunctionalTest {
         !result.output.contains('No jars to process')
     }
 
+    def "UP-TO-DATE when Proguard built twice"() {
+
+        buildFile << """
+            configurations {
+                customConfig
+            }
+
+            dependencies {
+                customConfig (group: 'org.apache.ant', name: 'ant', version: '1.10.1') {
+                    transitive = false
+                }
+            }
+
+            proguardJar {
+                withJavaLibs()
+                withLibraryConfiguration()
+                dontwarn()
+
+                inputFile configurations.findByName('customConfig').files.first()
+            }
+
+            task workflow {
+                dependsOn proguardJar
+            }
+        """
+
+        when:
+        BuildResult result = build('workflow')
+
+        then:
+        result.output.contains('BUILD SUCCESSFUL')
+        !result.output.contains('No jars to process')
+        
+        when:
+        result = build('workflow')
+
+        then:
+        result.output.contains(':proguardJar UP-TO-DATE')
+        !result.output.contains('No jars to process')
+    }
+
     def "When no inputs are found print 'No jars to process' message"() {
 
         buildFile << """

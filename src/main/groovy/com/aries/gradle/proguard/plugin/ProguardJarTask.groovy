@@ -102,7 +102,7 @@ class ProguardJarTask extends ProGuardTask {
         withJavaLibs = true
     }
 
-    // helper method to configure proguard for library generation
+    // helper method to configure proguard for generic library generation
     void withLibraryConfiguration() {
         overloadaggressively
         repackageclasses ''
@@ -116,6 +116,66 @@ class ProguardJarTask extends ProGuardTask {
             java.lang.Class class\$(java.lang.String); \
             java.lang.Class class\$(java.lang.String, boolean); \
         }'
+        keepclasseswithmembernames includedescriptorclasses:true, 'class * { \
+            native <methods>; \
+        }'
+        keepclassmembers allowshrinking:true, 'enum * { \
+            public static **[] values(); \
+            public static ** valueOf(java.lang.String); \
+        }'
+        keepclassmembers 'class * implements java.io.Serializable { \
+            static final long serialVersionUID; \
+            static final java.io.ObjectStreamField[] serialPersistentFields; \
+            private void writeObject(java.io.ObjectOutputStream); \
+            private void readObject(java.io.ObjectInputStream); \
+            java.lang.Object writeReplace(); \
+            java.lang.Object readResolve(); \
+        }'
+    }
+
+    // helper method to configure proguard for generic android generation
+    void withAndroidConfiguration() {
+        dontpreverify
+        repackageclasses ''
+        allowaccessmodification
+        optimizations '!code/simplification/arithmetic'
+        renamesourcefileattribute 'SourceFile'
+        keepattributes 'SourceFile,LineNumberTable'
+        keepattributes '*Annotation*'
+
+        keep 'public class * extends android.app.Activity'
+        keep 'public class * extends android.app.Application'
+        keep 'public class * extends android.app.Service'
+        keep 'public class * extends android.content.BroadcastReceiver'
+        keep 'public class * extends android.content.ContentProvider'
+        keep 'public class * extends android.view.View { \
+            public <init>(android.content.Context); \
+            public <init>(android.content.Context, android.util.AttributeSet); \
+            public <init>(android.content.Context, android.util.AttributeSet, int); \
+            public void set*(...); \
+        }'
+        keepclasseswithmembers 'class * { \
+            public <init>(android.content.Context, android.util.AttributeSet); \
+        }'
+        keepclasseswithmembers 'class * { \
+            public <init>(android.content.Context, android.util.AttributeSet, int); \
+        }'
+        keepclassmembers 'class * extends android.content.Context { \
+           public void *(android.view.View); \
+           public void *(android.view.MenuItem); \
+        }'
+        keepclassmembers 'class * implements android.os.Parcelable { \
+            static android.os.Parcelable$Creator CREATOR; \
+        }'
+        keepclassmembers 'class **.R$* { \
+            public static <fields>; \
+        }'
+        keepclassmembers 'class * { \
+            @android.webkit.JavascriptInterface <methods>; \
+        }'
+        keep 'public interface com.android.vending.licensing.ILicensingService'
+        dontnote 'com.android.vending.licensing.ILicensingService'
+        dontwarn 'android.support.**'
         keepclasseswithmembernames includedescriptorclasses:true, 'class * { \
             native <methods>; \
         }'

@@ -25,5 +25,5 @@ Can be sourced from Artifactory/Bintray/MavenCentral like so:
 * Project was built using the model provided by [gradle-multi-project-example](https://github.com/project-aries/gradle-multi-project-example)
 * [Proguard HomePage](https://www.guardsquare.com/en/proguard)
 * [Proguard on Github](https://github.com/johnjohndoe/ProGuard)
-* [Release Process](https://github.com/project-aries/gradle-proguard-plugin/blob/master/docs/RELEASE_PROCESS.md)
+* [android-proguard-snippets](https://github.com/krschultz/android-proguard-snippets)
 
