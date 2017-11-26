@@ -24,48 +24,9 @@ class GradleProguardPlugin implements Plugin<Project> {
     
     @Override
     void apply(Project project) {
-
-        // 1.) create proguard extension
-        final GradleProguardPluginExtension extension = createProguardExtension(project)
         
-        // 2.) create proguard configuration
-        final Configuration configuration = createProguardConfiguration(project, extension);
-        
-        // 3.) create proguard task
-        final ProguardJarTask proguardJar = createProguardJarTask(project);
-    }
-
-    // Create proguard extension if it does not already exist
-    public static GradleProguardPluginExtension createProguardExtension(final Project project) {
-        GradleProguardPluginExtension extension = project.rootProject.extensions.findByName(EXTENSION_NAME)
-        if (!extension) {
-            extension = project.extensions.create(EXTENSION_NAME, GradleProguardPluginExtension)
-        }
-        extension
-    }
-
-    // Create proguard configuration if it does NOT already exist
-    public static Configuration createProguardConfiguration(final Project project, final GradleProguardPluginExtension extension) {
-        Configuration configuration = project.rootProject.configurations.findByName(CONFIGURATION_NAME)
-        if (!configuration) {
-            configuration = project.configurations.create(CONFIGURATION_NAME)
-                    .setVisible(false)
-                    .setTransitive(true)
-                    .setDescription('The Proguard Java libraries to be used for this project.')
-
-            // if no repositories were defined fallback to buildscript
-            // repositories to resolve dependencies as a last resort
-            project.afterEvaluate {
-                if (project.repositories.size() == 0) {
-                    project.repositories.addAll(project.buildscript.repositories.collect())
-                }
-            }
-
-            configuration.defaultDependencies { dependencies ->
-                dependencies.add(project.dependencies.create("net.sf.proguard:proguard-parent:${extension.getToolVersion()}"))
-            }
-        }
-        configuration
+        // 1.) create proguard task
+        createProguardJarTask(project);
     }
 
     // Create proguard task if it does not already exist

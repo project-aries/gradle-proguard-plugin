@@ -1,6 +1,6 @@
 # gradle-proguard-plugin
 
-Gradle plugin to produce proguard jars.
+Gradle plugin to easily proguard your jars and fit within a traditional build pipeline.
 
 ## Status
 
@@ -26,4 +26,4 @@ Can be sourced from Artifactory/Bintray/MavenCentral like so:
 * [Proguard HomePage](https://www.guardsquare.com/en/proguard)
 * [Proguard on Github](https://github.com/johnjohndoe/ProGuard)
 * [android-proguard-snippets](https://github.com/krschultz/android-proguard-snippets)
-
+* [android-proguards](https://github.com/yongjhih/android-proguards)
