@@ -16,6 +16,7 @@
 
 package com.aries.gradle.proguard.plugin
 
+import java.util.Date
 import org.codehaus.groovy.runtime.GStringImpl
 import org.gradle.api.GradleException
 import org.gradle.api.Task
@@ -37,6 +38,10 @@ import proguard.gradle.ProGuardTask
  * @author cdancy
  */
 class ProguardJar extends ProGuardTask implements PublishArtifact {
+
+    @Input
+    @Optional
+    public String baseName = project.name
 
     @Input
     @Optional
@@ -241,7 +246,7 @@ class ProguardJar extends ProGuardTask implements PublishArtifact {
             }
         }
     }
-
+    
     String getExtension() {
         Jar.DEFAULT_EXTENSION
     }
@@ -253,11 +258,11 @@ class ProguardJar extends ProGuardTask implements PublishArtifact {
     String getClassifier() {
         classifier
     }
-    
+
     @OutputFile
     File getFile() {
         def localDestinationDir = destinationDir ?: project.file("${project.buildDir}/libs")
-        def generatedFileName = "${localDestinationDir.path}/${getName()}"
+        def generatedFileName = "${localDestinationDir.path}/${baseName}"
 
         def localVersion = project.findProperty('version')
         if (localVersion && localVersion != 'unspecified') {
@@ -274,7 +279,7 @@ class ProguardJar extends ProGuardTask implements PublishArtifact {
 
     Date getDate() {
         def foundFile = getFile()
-        foundFile.exists() ? new java.util.Date(foundFile.lastModified()) : null
+        foundFile.exists() ? new Date(foundFile.lastModified()) : null
     }
 }
 
