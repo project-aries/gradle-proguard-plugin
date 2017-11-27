@@ -30,10 +30,10 @@ class GradleProguardPlugin implements Plugin<Project> {
     }
 
     // Create proguard task if it does not already exist
-    public static ProguardJarTask createProguardJarTask(final Project project) {
-        ProguardJarTask proguardJar = project.rootProject.tasks.findByName(TASK_NAME)
+    public static ProguardJar createProguardJarTask(final Project project) {
+        ProguardJar proguardJar = project.rootProject.tasks.findByName(TASK_NAME)
         if (!proguardJar) {
-            proguardJar = project.tasks.create(TASK_NAME, ProguardJarTask)
+            proguardJar = project.tasks.create(TASK_NAME, ProguardJar)
             proguardJar.group = TASK_GROUP
             proguardJar.description = 'Create a Proguard jar'
         }

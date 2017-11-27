@@ -24,7 +24,7 @@ import spock.lang.Requires
     Tests to exercise using the 'proguardJar' task.
 
 */
-class ProguardJarTaskTests extends AbstractFunctionalTest {
+class ProguardJarTests extends AbstractFunctionalTest {
 
     def "Build Proguard Jar using OOTB task inputs"() {
 

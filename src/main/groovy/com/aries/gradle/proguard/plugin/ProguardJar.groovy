@@ -36,7 +36,7 @@ import proguard.gradle.ProGuardTask
  *
  * @author cdancy
  */
-class ProguardJarTask extends ProGuardTask implements PublishArtifact {
+class ProguardJar extends ProGuardTask implements PublishArtifact {
 
     @Input
     @Optional
