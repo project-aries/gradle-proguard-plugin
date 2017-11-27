@@ -203,7 +203,7 @@ class ProguardJarTaskTests extends AbstractFunctionalTest {
         !result.output.contains('No jars to process')
     }
 
-    def "When no inputs are found print 'No jars to process' message"() {
+    def "When no inputs are found print 'No file to process' message"() {
 
         buildFile << """
             proguardJar {
@@ -221,7 +221,7 @@ class ProguardJarTaskTests extends AbstractFunctionalTest {
         BuildResult result = build('workflow')
 
         then:
-        result.output.contains('No jars to process')
+        result.output.contains('No file to process')
     }
 }
 

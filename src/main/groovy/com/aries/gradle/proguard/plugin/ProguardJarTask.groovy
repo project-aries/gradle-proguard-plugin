@@ -18,10 +18,14 @@ package com.aries.gradle.proguard.plugin
 
 import org.codehaus.groovy.runtime.GStringImpl
 import org.gradle.api.GradleException
+import org.gradle.api.Task
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import proguard.gradle.ProGuardTask
@@ -32,7 +36,7 @@ import proguard.gradle.ProGuardTask
  *
  * @author cdancy
  */
-class ProguardJarTask extends ProGuardTask {
+class ProguardJarTask extends ProGuardTask implements PublishArtifact {
 
     @Input
     @Optional
@@ -69,7 +73,7 @@ class ProguardJarTask extends ProGuardTask {
             // 3.) Set outputFile if it doesn't already exist. Very low
             //     likelyhood of getting a duplicate here but do a check
             //     just to be on the safe side.
-            def outputFilePath = getOutputFile().path
+            def outputFilePath = getFile().path
             if (!this.getOutJarFiles().contains(outputFilePath)) {
                 this.outjars(outputFilePath)
             }
@@ -78,7 +82,7 @@ class ProguardJarTask extends ProGuardTask {
             super.proguard()
 
         } else {
-            logger.quiet 'No jars to process. Was this expected?'
+            logger.quiet 'No file to process. Was this expected?'
         }
     }
 
@@ -186,7 +190,7 @@ class ProguardJarTask extends ProGuardTask {
         // 1.) If no 'injars' were specified then proceed to find one
         if (this.getInJarFiles().isEmpty()) {
             
-            // 2.) Check if user passed in main inputFile
+            // 2.) Check if user passed in main input file
             if (inputFile) {
                 this.injars(inputFile.path)
                 inputFileFound = true
@@ -214,30 +218,58 @@ class ProguardJarTask extends ProGuardTask {
         inputFileFound
     }
 
-    @OutputFile
-    public File getOutputFile() {
+    // helper method to set the inputFile
+    void inputFile(final File inputFile) {
+        if (inputFile) {
+            this.inputFile = inputFile
+        } else {
+            throw new GradleException('Cannot set NULL input file')
+        }
+    }
 
+    TaskDependency getBuildDependencies() {
+        Task thisTask = this
+        return new TaskDependency() {
+            @Override
+            Set<? extends Task> getDependencies(Task task) {
+                return [thisTask] as Set
+            }
+        }
+    }
+
+    String getExtension() {
+        Jar.DEFAULT_EXTENSION
+    }
+
+    String getType() {
+        getExtension()
+    }
+
+    String getClassifier() {
+        classifier
+    }
+    
+    @OutputFile
+    File getFile() {
         def localDestinationDir = destinationDir ?: project.file("${project.buildDir}/libs")
-        def generatedFileName = "${localDestinationDir.path}/${project.name}"
+        def generatedFileName = "${localDestinationDir.path}/${getName()}"
 
         def localVersion = project.findProperty('version')
         if (localVersion && localVersion != 'unspecified') {
             generatedFileName += "-${localVersion}"
         }
 
-        if (classifier) {
-            generatedFileName += "-${classifier}"
+        def localClassifier = getClassifier()
+        if (localClassifier) {
+            generatedFileName += "-${localClassifier}"
         }
 
-        return project.file("${generatedFileName}.jar")
+        return project.file("${generatedFileName}.${getExtension()}")
     }
 
-    void inputFile(final File inputFile) {
-        if (inputFile) {
-            this.inputFile = inputFile
-        } else {
-            throw new GradleException('Cannot set NULL inputFile')
-        }
+    Date getDate() {
+        def foundFile = getFile()
+        foundFile.exists() ? new java.util.Date(foundFile.lastModified()) : null
     }
 }
 
