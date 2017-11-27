@@ -204,9 +204,14 @@ class ProguardJar extends ProGuardTask implements PublishArtifact {
 
                     // 4.) If nothing was passed in assume user wanted us to use
                     //     output of jar task.
-                    def jarOutputFile = project.tasks.findByName('jar')?.outputs?.files?.singleFile
+                    def jarOutputFile = project.tasks.findByName('jar')?.getArchivePath()
                     if (jarOutputFile) {
                         this.injars(jarOutputFile.path)
+                        
+                        // 5.) Add all runtime deps as library jars
+                        project.configurations.runtime.resolve().each { libraryJarDep ->
+                            this.injars(libraryJarDep.path)
+                        }
                         inputFileFound = true
                     }
                 }
