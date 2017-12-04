@@ -88,6 +88,14 @@ class ProguardJar extends ProGuardTask implements PublishArtifact {
                 this.outjars(outputFilePath)
             }
 
+            // 4.) check that each injar file actually exists before we start
+            this.getInJarFiles().each { inJarCheck ->
+                def possibleInJar = project.file(inJarCheck)
+                if (!possibleInJar.exists()) {
+                    throw new GradleException("Input jar file '${possibleInJar.path}' does NOT exist");
+                }
+            }
+
             // 4.) Execute super version of proguard method to create our jar.
             super.proguard()
 

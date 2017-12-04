@@ -420,5 +420,29 @@ class ProguardJarTests extends AbstractFunctionalTest {
         then:
         result.output.contains('No file to process')
     }
-}
 
+    def "Fail when any inputFile/injar is not available"() {
+
+        buildFile << """
+            proguardJar {
+                withJavaLibs()
+                withLibraryConfiguration()
+                dontwarn()
+
+                injars project.file("\${projectDir.path}/non-existent-file.jar")
+            }
+
+            task workflow {
+                dependsOn proguardJar
+            }
+        """
+
+        when:
+        BuildResult result = buildAndFail('workflow')
+
+        then:
+        result.output.contains('BUILD FAILED')
+        result.output.contains("org.gradle.api.GradleException: Input jar file")
+        !result.output.contains('No jars to process')
+    }
+}
