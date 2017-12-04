@@ -233,6 +233,24 @@ class ProguardJar extends ProGuardTask implements PublishArtifact {
         inputFileFound
     }
 
+    // helper method to set the baseName
+    void baseName(final String baseName) {
+        if (baseName) {
+            this.baseName = baseName
+        } else {
+            throw new GradleException('Cannot set NULL baseName')
+        }
+    }
+
+    // helper method to set the classifier
+    void classifier(final String classifier) {
+        if (classifier) {
+            this.classifier = classifier
+        } else {
+            throw new GradleException('Cannot set NULL classifier')
+        }
+    }
+
     // helper method to set the inputFile
     void inputFile(final def inputFile) {
         if (inputFile) {

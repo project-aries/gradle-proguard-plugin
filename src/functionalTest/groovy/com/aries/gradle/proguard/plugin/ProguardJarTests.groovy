@@ -202,7 +202,7 @@ class ProguardJarTests extends AbstractFunctionalTest {
         !result.output.contains('No jars to process')
     }
 
-    def "Build Proguard Jar with different baseName and classifier"() {
+    def "Build Proguard Jar with different baseName and classifier as input to properties"() {
 
         buildFile << """
             configurations {
@@ -222,6 +222,55 @@ class ProguardJarTests extends AbstractFunctionalTest {
 
                 baseName = 'Hello'
                 classifier = 'world'
+                injars configurations.findByName('customConfig').files.first().path
+            }
+
+            task workflow {
+                dependsOn proguardJar
+                doLast {
+                    def sourceLength = configurations.findByName('customConfig').files.first().length()
+                    def targetLength = proguardJar.getFile().length()
+                    logger.quiet "Found Lengths: sourceLength=\${sourceLength}, targetLength=\${targetLength}"
+
+                    if (sourceLength > targetLength) {
+                        logger.quiet "Source is bigger than Target"
+                    }
+
+                    println "FileName: \${proguardJar.getFile().getName()}"
+                }
+            }
+        """
+
+        when:
+        BuildResult result = build('workflow')
+
+        then:
+        result.output.contains('BUILD SUCCESSFUL')
+        result.output.contains('Source is bigger than Target')
+        result.output.contains("FileName: Hello-world.jar")
+        !result.output.contains('No jars to process')
+    }
+
+    def "Build Proguard Jar with different baseName and classifier as input to methods"() {
+
+        buildFile << """
+            configurations {
+                customConfig
+            }
+
+            dependencies {
+                customConfig (group: 'org.apache.ant', name: 'ant', version: '1.10.1') {
+                    transitive = false
+                }
+            }
+
+            proguardJar {
+                withJavaLibs()
+                withLibraryConfiguration()
+                dontwarn()
+
+                baseName 'Hello'
+                classifier 'world'
                 injars configurations.findByName('customConfig').files.first().path
             }
 
