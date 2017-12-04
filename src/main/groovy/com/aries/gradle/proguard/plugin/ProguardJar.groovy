@@ -52,6 +52,11 @@ class ProguardJar extends ProGuardTask implements PublishArtifact {
     @Optional
     public File inputFile
 
+    // file to write proguard conversion into
+    @OutputFile
+    @Optional
+    public File outputFile
+
     // lazily resolves to build/libs
     @InputFile
     public File destinationDir
@@ -229,11 +234,20 @@ class ProguardJar extends ProGuardTask implements PublishArtifact {
     }
 
     // helper method to set the inputFile
-    void inputFile(final File inputFile) {
+    void inputFile(final def inputFile) {
         if (inputFile) {
-            this.inputFile = inputFile
+            this.inputFile = project.file(inputFile)
         } else {
-            throw new GradleException('Cannot set NULL input file')
+            throw new GradleException('Cannot set NULL inputFile')
+        }
+    }
+
+    // helper method to set the outputFile
+    void outputFile(final def outputFile) {
+        if (outputFile) {
+            this.outputFile = project.file(outputFile)
+        } else {
+            throw new GradleException('Cannot set NULL outputFile')
         }
     }
 
@@ -259,22 +273,25 @@ class ProguardJar extends ProGuardTask implements PublishArtifact {
         classifier
     }
 
-    @OutputFile
     File getFile() {
-        def localDestinationDir = destinationDir ?: project.file("${project.buildDir}/libs")
-        def generatedFileName = "${localDestinationDir.path}/${baseName}"
+        if (outputFile) {
+            outputFile
+        } else {
+            def localDestinationDir = destinationDir ?: project.file("${project.buildDir}/libs")
+            def generatedFileName = "${localDestinationDir.path}/${baseName}"
 
-        def localVersion = project.findProperty('version')
-        if (localVersion && localVersion != 'unspecified') {
-            generatedFileName += "-${localVersion}"
+            def localVersion = project.findProperty('version')
+            if (localVersion && localVersion != 'unspecified') {
+                generatedFileName += "-${localVersion}"
+            }
+
+            def localClassifier = getClassifier()
+            if (localClassifier) {
+                generatedFileName += "-${localClassifier}"
+            }
+
+            project.file("${generatedFileName}.${getExtension()}")
         }
-
-        def localClassifier = getClassifier()
-        if (localClassifier) {
-            generatedFileName += "-${localClassifier}"
-        }
-
-        return project.file("${generatedFileName}.${getExtension()}")
     }
 
     Date getDate() {
