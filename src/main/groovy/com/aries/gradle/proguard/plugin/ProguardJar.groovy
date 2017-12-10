@@ -112,6 +112,7 @@ class ProguardJar extends ProGuardTask implements PublishArtifact {
     // helper method to configure proguard for generic library generation
     void withLibraryConfiguration() {
         overloadaggressively
+        allowaccessmodification
         repackageclasses ''
         keepparameternames
         renamesourcefileattribute 'SourceFile'
