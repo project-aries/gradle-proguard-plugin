@@ -38,7 +38,7 @@ release {
 }
 
 // Ensure the following tasks are run as part of releasing a new version.
-def buildTasks = ['clean', 'build']
+def buildTasks = ['build']
 def publishTasks = [uploadTask]
 if (Boolean.valueOf(publishGithubPages).booleanValue()) {
     publishTasks << 'gitPublishPush'
