@@ -38,13 +38,14 @@ release {
 }
 
 // Ensure the following tasks are run as part of releasing a new version.
-def releaseTasks = ['clean', 'build', uploadTask]
+def buildTasks = ['clean', 'build']
+def publishTasks = [uploadTask]
 if (Boolean.valueOf(publishGithubPages).booleanValue()) {
-    releaseTasks << 'gitPublishPush'
+    publishTasks << 'gitPublishPush'
 }
 
-tasks.release.dependsOn(releaseTasks.collect { task ->
-    allprojects.collect { ":" + it.name + ":" + task }.flatten()
+tasks.release.dependsOn(buildTasks.collect { task ->
+    allprojects.collect { ':' + task }.flatten() + subprojects.collect { ':' + it.name + ':' + task }.flatten()
 }.flatten())
 
 apply from: "$rootDir/gradle/projects.gradle"
