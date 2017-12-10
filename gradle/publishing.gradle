@@ -116,7 +116,6 @@ if (Boolean.valueOf(project.publishGithubPages).booleanValue()) {
  * the project hierarchy.
  */
 String resolveProperty(String propKey) {
-    String propValue = System.getenv()[propKey]
-    return propValue ?: findProperty(propKey)
+    System.getenv(propKey) ?: findProperty(propKey)
 }
 
