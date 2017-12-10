@@ -25,6 +25,8 @@ buildscript {
     }
 }
 
+apply from: "$rootDir/gradle/common.gradle"
+
 // properties MUST be applied PRIOR to applying publish plugin or they won't take effect.
 System.setProperty('org.ajoberstar.grgit.auth.username', resolveProperty('releaseUsername'))
 System.setProperty('org.ajoberstar.grgit.auth.password', resolveProperty('releasePassword'))
@@ -109,13 +111,3 @@ if (Boolean.valueOf(project.publishGithubPages).booleanValue()) {
     }
     gitPublishPush.dependsOn docsJar
 }
-
-/*
- * Check environment for property and if that fails 
- * ask gradle to find the property somewhere within
- * the project hierarchy.
- */
-String resolveProperty(String propKey) {
-    System.getenv(propKey) ?: findProperty(propKey)
-}
-

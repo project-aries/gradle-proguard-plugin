@@ -1,0 +1,6 @@
+/*
+ * Check environment for property and if that fails 
+ * ask gradle to find the property somewhere within
+ * the project hierarchy.
+ */
+ext.resolveProperty = { System.getenv(it) ?: rootProject.findProperty(it) }

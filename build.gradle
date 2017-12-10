@@ -20,16 +20,18 @@ buildscript {
     }
 }
 
+apply from: "$rootDir/gradle/common.gradle"
+
 // must be set prior to 'release-opinion' plugin getting applied 
 // as they are magically used behind the scenes.
-rootProject.ext.setProperty('release.stage', releaseStage.trim())
-rootProject.ext.setProperty('release.scope', releaseScope.trim())
+rootProject.ext.setProperty('release.stage', resolveProperty('releaseStage'))
+rootProject.ext.setProperty('release.scope', resolveProperty('releaseScope'))
 
 apply plugin: 'org.ajoberstar.release-opinion'
 
 release {
-    def username = System.getenv('releaseUsername') ?: findProperty('releaseUsername')
-    def password = System.getenv('releasePassword') ?: findProperty('releasePassword')
+    def username = resolveProperty('releaseUsername')
+    def password = resolveProperty('releasePassword')
     def credentials = new org.ajoberstar.grgit.Credentials(username, password)
     grgit = org.ajoberstar.grgit.Grgit.open(dir: project.rootDir.absolutePath, creds: credentials)
     versionStrategy org.ajoberstar.gradle.git.release.opinion.Strategies.FINAL
