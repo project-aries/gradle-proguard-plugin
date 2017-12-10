@@ -45,7 +45,7 @@ if (Boolean.valueOf(publishGithubPages).booleanValue()) {
 }
 
 tasks.release.dependsOn(buildTasks.collect { task ->
-    allprojects.collect { ':' + task }.flatten() + subprojects.collect { ':' + it.name + ':' + task }.flatten()
+    allprojects.collect { ':' + task }.flatten()
 }.flatten())
 
 apply from: "$rootDir/gradle/projects.gradle"
