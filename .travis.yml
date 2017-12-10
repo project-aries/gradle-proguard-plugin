@@ -11,7 +11,7 @@ cache:
     - $HOME/.gradle/wrapper/
     
 script:
-  - ./gradlew -s -Dorg.gradle.daemon=false clean build publishToMavenLocal release
+  - ./gradlew -s -Dorg.gradle.daemon=false clean build publishToMavenLocal -PreleaseUsername=$RELEASE_USERNAME -PreleasePassword=$RELEASE_PASSWORD release
 
 after_script:
   - bash <(curl -s https://codecov.io/bash)
