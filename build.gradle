@@ -38,13 +38,15 @@ release {
 }
 
 // Ensure the following tasks are run as part of releasing a new version.
-def buildTasks = ['build']
+tasks.release.dependsOn(['build'].collect { task ->
+    allprojects.collect { task }.flatten()
+}.flatten())
+
 def publishTasks = [uploadTask]
 if (Boolean.valueOf(publishGithubPages).booleanValue()) {
     publishTasks << 'gitPublishPush'
 }
-
-tasks.release.dependsOn(buildTasks.collect { task ->
+tasks.release.finalizedBy(publishTasks.collect { task ->
     allprojects.collect { task }.flatten()
 }.flatten())
 
